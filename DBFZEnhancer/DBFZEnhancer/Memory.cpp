@@ -33,7 +33,7 @@ PVOID GetSystemModuleBase(const char* moduleName)
 
 	if (modules) ExFreePoolWithTag(modules, NULL);
 
-	if (moduleBase <= 0) return NULL;
+	if ((int)moduleBase <= 0) return NULL; //IDK WHY VS IS FLIPPIN ABOUT ME COMPARING PVOID AND INT WHEN IT WORKS JUST FINE IN ANOTHER PROJECT
 
 	return moduleBase;
 }

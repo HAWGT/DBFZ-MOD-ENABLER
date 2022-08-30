@@ -7,16 +7,33 @@
 
 typedef UINT64(__fastcall* FunctionTemplate)(char* a1, unsigned int a2, unsigned int a3, __int64* a4, unsigned __int64 a5);
 FunctionTemplate Function;
+FunctionTemplate hookedFunction;
 
-uint64_t CallHook(PCOMMUNICATIONPACKET packet, unsigned int a2, unsigned int a3, __int64* a4, unsigned __int64 a5)
+HMODULE win32Module;
+
+void Init()
 {
-	LoadLibrary("user32.dll");
-	void* hookedFunction = GetProcAddress(LoadLibrary("win32u.dll"), "NtTokenManagerCreateCompositionTokenHandle");
 
-	auto function = reinterpret_cast<uint64_t(_stdcall*)(PCOMMUNICATIONPACKET, unsigned int, unsigned int, __int64*, unsigned __int64)>(hookedFunction);
+	if (LoadLibrary("user32.dll") && LoadLibrary("win32u.dll"))
+	{
+		win32Module = GetModuleHandleA("win32u.dll");
+	}
+	if (win32Module != NULL)
+	{
+		hookedFunction = (FunctionTemplate)GetProcAddress(win32Module, "NtTokenManagerCreateCompositionTokenHandle");
+	}
 
-	return function(packet, a2, a3, a4, a5);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 }
+
+inline void CallHook(PCOMMUNICATIONPACKET packet, unsigned int a2, unsigned int a3, __int64* a4, unsigned __int64 a5)
+{
+	if (hookedFunction != NULL)
+	{
+		hookedFunction((char*)packet, a2, a3, a4, a5);
+	}
+}
+
 
 using uniqueHandle = std::unique_ptr<HANDLE, HandleDisposer>;
 

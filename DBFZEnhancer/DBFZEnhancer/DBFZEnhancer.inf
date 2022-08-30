@@ -4,8 +4,8 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=Sample ; TODO: edit Class
-ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Class=Multifunction ; TODO: edit Class
+ClassGuid={4d36e971-e325-11ce-bfc1-08002be10318} ; TODO: edit ClassGuid
 Provider=%ManufacturerName%
 CatalogFile=DBFZEnhancer.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
@@ -15,9 +15,6 @@ DefaultDestDir = 12
 DBFZEnhancer_Device_CoInstaller_CopyFiles = 11
 
 ; ================= Class section =====================
-
-[ClassInstall32]
-Addreg=SampleClassReg
 
 [SampleClassReg]
 HKR,,,0,%ClassName%

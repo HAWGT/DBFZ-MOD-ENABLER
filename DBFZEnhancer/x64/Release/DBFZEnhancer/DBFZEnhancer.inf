@@ -1,0 +1,86 @@
+;
+; DBFZEnhancer.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Multifunction ; TODO: edit Class
+ClassGuid={4d36e971-e325-11ce-bfc1-08002be10318} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=DBFZEnhancer.cat
+DriverVer = 08/30/2022,2.59.21.331
+
+[DestinationDirs]
+DefaultDestDir = 12
+DBFZEnhancer_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+DBFZEnhancer.sys  = 1,,
+;
+
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTamd64
+
+[Standard.NTamd64]
+%DBFZEnhancer.DeviceDesc%=DBFZEnhancer_Device, Root\DBFZEnhancer ; TODO: edit hw-id
+
+[DBFZEnhancer_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+DBFZEnhancer.sys
+
+;-------------- Service installation
+[DBFZEnhancer_Device.NT.Services]
+AddService = DBFZEnhancer,%SPSVCINST_ASSOCSERVICE%, DBFZEnhancer_Service_Inst
+
+; -------------- DBFZEnhancer driver install sections
+[DBFZEnhancer_Service_Inst]
+DisplayName    = %DBFZEnhancer.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\DBFZEnhancer.sys
+
+;
+;--- DBFZEnhancer_Device Coinstaller installation ------
+;
+
+[DBFZEnhancer_Device.NT.CoInstallers]
+AddReg=DBFZEnhancer_Device_CoInstaller_AddReg
+CopyFiles=DBFZEnhancer_Device_CoInstaller_CopyFiles
+
+[DBFZEnhancer_Device_CoInstaller_AddReg]
+;
+
+
+[DBFZEnhancer_Device_CoInstaller_CopyFiles]
+;
+
+
+[DBFZEnhancer_Device.NT.Wdf]
+KmdfService =  DBFZEnhancer, DBFZEnhancer_wdfsect
+[DBFZEnhancer_wdfsect]
+KmdfLibraryVersion = 1.15
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "DBFZEnhancer Installation Disk"
+DBFZEnhancer.DeviceDesc = "DBFZEnhancer Device"
+DBFZEnhancer.SVCDESC = "DBFZEnhancer Service"

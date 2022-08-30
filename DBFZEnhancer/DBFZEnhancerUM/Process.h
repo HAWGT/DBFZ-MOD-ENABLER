@@ -1,6 +1,8 @@
 #include <string_view>
 #include "Definitions.h"
 
+void Init();
+
 uint32_t GetProcessID(std::string_view processName);
 
 ULONG64 GetModuleBaseAddress(uint32_t pID);

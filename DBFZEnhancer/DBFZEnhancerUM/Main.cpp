@@ -3,13 +3,15 @@
 #include <thread>
 
 
-void PatchTeamForcer(int pid, ULONG64 baseAddr);
 void SteamIDWatcher(int pid, ULONG64 baseAddress);
+void PatchPakLoader(int pid, ULONG64 baseAddr);
 
 std::atomic<bool> canRun = false;
 
 int main()
 {
+	Init();
+
 	int pid = 0;
 	int oldPid = -1;
 	while (true)
@@ -29,55 +31,15 @@ int main()
 			std::cout << "Base Address: " << std::hex << baseAddress << std::dec << std::endl;
 			std::cout << "Patching..." << std::endl;
 
-			//PatchTeamForcer(pid, baseAddress);
+			PatchPakLoader(pid, baseAddress);
 
 			canRun = true;
 
 			std::thread watcher(SteamIDWatcher, pid, baseAddress);
-			watcher.join();
+			watcher.detach();
 		}
 	}
 	return 0;
-}
-
-void PatchTeamForcer(int pid, ULONG64 baseAddr)
-{
-	ULONG64 offset_tm_pt_0 = 0x5CBEF8; //Training Mode - Practice Team
-	BYTE patch_tm_pt_0[] = { 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset_tm_pt_0, (UINT_PTR)(&patch_tm_pt_0), sizeof(patch_tm_pt_0));
-
-	ULONG64 offset_tm_pt_1 = 0x5CBD9; //Training Mode - Practice Team
-	BYTE patch_tm_pt_1[] = { 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset_tm_pt_1, (UINT_PTR)(&patch_tm_pt_1), sizeof(patch_tm_pt_1));
-
-	ULONG64 offset_tm_pt_2 = 0x5CC307; //Training Mode - Practice Team
-	BYTE patch_tm_pt_2[] = { 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset_tm_pt_2, (UINT_PTR)(&patch_tm_pt_2), sizeof(patch_tm_pt_2));
-
-	ULONG64 offset_tm_pt_3 = 0x5CC1A8; //Training Mode - Practice Team
-	BYTE patch_tm_pt_3[] = { 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset_tm_pt_3, (UINT_PTR)(&patch_tm_pt_3), sizeof(patch_tm_pt_3));
-
-	ULONG64 offset1 = 0x6826E5; //After match / entering training mode
-	BYTE patch1[] = { 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset1, (UINT_PTR)(&patch1), sizeof(patch1));
-
-	ULONG64 offset2 = 0x6832DF; //Team Selection
-	BYTE patch2[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset2, (UINT_PTR)(&patch2), sizeof(patch2));
-
-	ULONG64 offset3 = 0x6B00B6; //Training Mode - Matchmaking Team
-	BYTE patch3[] = { 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset3, (UINT_PTR)(&patch3), sizeof(patch3));
-
-	ULONG64 offset4 = 0x6B0208; //Training Mode - Matchmaking Team
-	BYTE patch4[] = { 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddr + offset4, (UINT_PTR)(&patch4), sizeof(patch4));
-
-	//68216D [4]
-	//6822D1 [3]
-	//682289 [2]
-
 }
 
 void SteamIDWatcher(int pid, ULONG64 baseAddress)
@@ -96,4 +58,11 @@ void SteamIDWatcher(int pid, ULONG64 baseAddress)
 			Sleep(1000);
 		}
 	}
+}
+
+void PatchPakLoader(int pid, ULONG64 baseAddr)
+{
+	ULONG64 offset = 0x3433902; //2ND CHAR - PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00
+	BYTE patch[] = { 0x78 };
+	WriteMemory(pid, baseAddr + offset, (UINT_PTR)(&patch), sizeof(patch));
 }

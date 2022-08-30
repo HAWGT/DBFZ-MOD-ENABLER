@@ -1,0 +1,11 @@
+*/*/.vs
+*/*/node_modules
+*/*/*/x64
+*/*/*/x86
+*/*/*/Debug
+*/*/*/Release
+*/*/*/*/Debug
+*/*/*/*/Release
+kdmapper
+*.ipch
+*.vsidx
