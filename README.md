@@ -11,6 +11,8 @@ rename all paks to pxks
 
 use kdmapper with the driver file (needs to be done after each PC restart, uninstall faceit anticheat to prior usage, only play games like apex, fortnite, rust, valorant after rebooting your pc, or you'll risk a ban)
 
+restart your PC when you want to play games like the ones mentioned above
+
 (run user mode app) <-- maybe this step can be omitted (needs further testing)
 
 launch game
