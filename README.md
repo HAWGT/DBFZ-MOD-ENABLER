@@ -23,5 +23,4 @@ click ok in the game's error message
 
 open the game again and wait for the patch
 
-all set (edited)
-
+all set
