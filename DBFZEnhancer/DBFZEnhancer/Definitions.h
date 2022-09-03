@@ -221,3 +221,21 @@ typedef struct _LDR_DATA_TABLE_ENTRY {
 } LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
 
 #endif
+
+//GAME RELATED
+
+typedef struct _TEAM_CHARACTER {
+	BYTE id; //0-46
+	BYTE color;
+	BYTE costume; //0-4
+	BYTE assist; //0-2
+} TEAM_CHARACTER, * PTEAM_CHARACTER;
+
+typedef struct _RAID_PARTY_CHARACTER {
+	BYTE id; //0-46
+	BYTE color;
+	BYTE stage;
+	BYTE music;
+	BYTE costume; //0-4
+	BYTE assist; //0-2
+} RAID_PARTY_CHARACTER, * PRAID_PARTY_CHARACTER;

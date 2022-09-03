@@ -86,6 +86,21 @@ ULONG64 ReadULONG64(uint32_t pID, UINT_PTR readAddress)
 	return response;
 }
 
+BYTE ReadBYTE(uint32_t pID, UINT_PTR readAddress)
+{
+	BYTE response;
+	COMMUNICATIONPACKET packet;
+	packet.targetAddress = readAddress;
+	packet.pID = pID;
+	packet.instructionCode = READREQUEST;
+	packet.bufferAddress = (UINT_PTR)(&response);
+	packet.size = sizeof(BYTE);
+
+	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
+
+	return response;
+}
+
 void WriteMemory(uint32_t pID, UINT_PTR writeAddress, UINT_PTR sourceAddress, SIZE_T writeSize)
 {
 	COMMUNICATIONPACKET packet;
@@ -95,10 +110,4 @@ void WriteMemory(uint32_t pID, UINT_PTR writeAddress, UINT_PTR sourceAddress, SI
 	packet.bufferAddress = sourceAddress;
 	packet.size = writeSize;
 	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
-}
-
-template<typename S>
-void Write(uint32_t pID, UINT_PTR writeAddress, const S& value)
-{
-	WriteMemory(pID, writeAddress, (UINT_PTR)&value, sizeof(S));
 }

@@ -8,7 +8,7 @@ Class=Multifunction ; TODO: edit Class
 ClassGuid={4d36e971-e325-11ce-bfc1-08002be10318} ; TODO: edit ClassGuid
 Provider=%ManufacturerName%
 CatalogFile=DBFZEnhancer.cat
-DriverVer = 08/30/2022,2.59.21.331
+DriverVer = 09/03/2022,20.24.38.452
 
 [DestinationDirs]
 DefaultDestDir = 12
