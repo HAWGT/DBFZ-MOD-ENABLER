@@ -88,9 +88,12 @@ void PatchPakLoader(int pid, ULONG64 baseAddress)
 void PatchTeamSelection(int pid, ULONG64 baseAddress)
 {
 	if (!canRun) return;
-	ULONG64 offset = 0x6837AF; //PATTERN 88 90 84 02 00 00 C6 80 88 02 00 00 01 42 0F B6 94 AE E9 02 00 00
-	BYTE patch[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-	WriteMemory(pid, baseAddress + offset, (UINT_PTR)(&patch), sizeof(patch));
+	ULONG64 offset1 = 0x683767; //PATTERN 42 C6 84 AE EB 02 00 00 00 B9 2E 00 00 00 42 0F B6 84 AE E8 02 00 00 3B C1
+	BYTE patch1[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+	WriteMemory(pid, baseAddress + offset1, (UINT_PTR)(&patch1), sizeof(patch1));
+	ULONG64 offset2 = 0x6837AF; //PATTERN 88 90 84 02 00 00 C6 80 88 02 00 00 01 42 0F B6 94 AE E9 02 00 00
+	BYTE patch2[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+	WriteMemory(pid, baseAddress + offset2, (UINT_PTR)(&patch2), sizeof(patch2));
 }
 
 void SecretCharacterSelect(int pid, ULONG64 baseAddress)
