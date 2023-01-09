@@ -1,9 +1,11 @@
 # DBFZ-MOD-ENABLER
 
+**OUTDATED (FOR THE MOMENT)**
+
 To run this, you will need to build KDMAPPER (https://github.com/TheCruZ/kdmapper)
 Then you need to compile and drag the sys file into kdmapper, the user mode exe is what you will be running
 
-TODO: MAKE IT A DRIVER ONLY SOLUTION
+TODO: MAKE IT A DRIVER ONLY SOLUTION AND UPDATE IT SO IT WORKS AGAIN
 
 Scribbed instructions:
 
