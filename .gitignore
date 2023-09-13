@@ -9,3 +9,13 @@
 kdmapper
 *.ipch
 *.vsidx
+/.vs
+/.vs/DBFZ-MOD-ENABLER
+/.vs/DBFZ-MOD-ENABLER/FileContentIndex
+/.vs/DBFZ-MOD-ENABLER/FileContentIndex/read.lock
+/.vs/DBFZ-MOD-ENABLER/v17
+/.vs/DBFZ-MOD-ENABLER/v17/.wsuo
+/.vs/DBFZ-MOD-ENABLER/v17/Browse.VC.db
+/.vs/DBFZ-MOD-ENABLER/v17/Browse.VC.db-shm
+/.vs/DBFZ-MOD-ENABLER/v17/Browse.VC.db-wal
+/.vs/DBFZ-MOD-ENABLER/v17/Browse.VC.opendb
