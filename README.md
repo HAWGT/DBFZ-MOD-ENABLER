@@ -7,6 +7,9 @@ Then you need to compile and drag the sys file into kdmapper, the user mode exe 
 
 Scribbed instructions:
 
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CI\Config
+VulnerableDriverBlocklistEnable = 0
+
 rename all paks to pxks
 
 launch game
