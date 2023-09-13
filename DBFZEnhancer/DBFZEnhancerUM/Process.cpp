@@ -5,9 +5,10 @@
 #include <vector>
 #include "Definitions.h"
 
-typedef UINT64(__fastcall* FunctionTemplate)(char* a1, unsigned int a2, unsigned int a3, __int64* a4, unsigned __int64 a5);
+typedef UINT64(__fastcall* FunctionTemplate)(PCOMMUNICATIONPACKET packet);
 FunctionTemplate Function;
 FunctionTemplate hookedFunction;
+
 
 HMODULE win32Module;
 
@@ -20,17 +21,18 @@ void Init()
 	}
 	if (win32Module != NULL)
 	{
-		hookedFunction = (FunctionTemplate)GetProcAddress(win32Module, "NtTokenManagerCreateCompositionTokenHandle");
+		hookedFunction = (FunctionTemplate)GetProcAddress(win32Module, "");
 	}
 
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 }
 
-inline void CallHook(PCOMMUNICATIONPACKET packet, unsigned int a2, unsigned int a3, __int64* a4, unsigned __int64 a5)
+inline void CallHook(PCOMMUNICATIONPACKET packet)
 {
 	if (hookedFunction != NULL)
 	{
-		hookedFunction((char*)packet, a2, a3, a4, a5);
+		packet->MagicNumber = 0xDEFACE;
+		hookedFunction(packet);
 	}
 }
 
@@ -63,7 +65,7 @@ ULONG64 GetModuleBaseAddress(uint32_t pID)
 	COMMUNICATIONPACKET packet = { 0 };
 	packet.pID = pID;
 	packet.instructionCode = BASEADDRREQUEST;
-	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
+	CallHook(&packet);
 
 	ULONG64 base = NULL;
 	base = packet.baseAddress;
@@ -81,7 +83,7 @@ ULONG64 ReadULONG64(uint32_t pID, UINT_PTR readAddress)
 	packet.bufferAddress = (UINT_PTR)(&response);
 	packet.size = sizeof(ULONG64);
 
-	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
+	CallHook(&packet);
 
 	return response;
 }
@@ -96,7 +98,7 @@ BYTE ReadBYTE(uint32_t pID, UINT_PTR readAddress)
 	packet.bufferAddress = (UINT_PTR)(&response);
 	packet.size = sizeof(BYTE);
 
-	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
+	CallHook(&packet);
 
 	return response;
 }
@@ -109,5 +111,5 @@ void WriteMemory(uint32_t pID, UINT_PTR writeAddress, UINT_PTR sourceAddress, SI
 	packet.instructionCode = WRITEREQUEST;
 	packet.bufferAddress = sourceAddress;
 	packet.size = writeSize;
-	CallHook(&packet, 1337, 1337, (__int64*)1337, 1337);
+	CallHook(&packet);
 }

@@ -82,6 +82,7 @@ extern "C" NTSTATUS NTAPI MmCopyVirtualMemory(
 
 typedef struct _COMMUNICATIONPACKET
 {
+	ULONG64 MagicNumber;
 	int instructionCode;
 	bool targetChange;
 	int pID;

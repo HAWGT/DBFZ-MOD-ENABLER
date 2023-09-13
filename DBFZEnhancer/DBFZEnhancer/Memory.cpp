@@ -1,6 +1,196 @@
 #include "Memory.h"
 #include <cstdint>
 
+typedef struct _SYSTEM_PROCESS_INFORMATION
+{
+	/* 0x0000 */ ULONG NextEntryOffset;
+	/* 0x0004 */ ULONG NumberOfThreads;
+	/* 0x0008 */ LARGE_INTEGER WorkingSetPrivateSize;
+	/* 0x0010 */ ULONG HardFaultCount;
+	/* 0x0014 */ ULONG NumberOfThreadsHighWatermark;
+	/* 0x0018 */ ULONGLONG CycleTime;
+	/* 0x0020 */ LARGE_INTEGER CreateTime;
+	/* 0x0028 */ LARGE_INTEGER UserTime;
+	/* 0x0030 */ LARGE_INTEGER KernelTime;
+	/* 0x0038 */ UNICODE_STRING ImageName;
+	/* 0x0048 */ KPRIORITY BasePriority;
+	/* 0x004C */ ULONG Padding1;
+	/* 0x0050 */ ULONGLONG UniqueProcessId;
+	/* 0x0058 */ ULONGLONG InheritedFromUniqueProcessId;
+	/* 0x0060 */ ULONG HandleCount;
+	/* 0x0064 */ ULONG SessionId;
+	/* 0x0068 */ ULONG_PTR UniqueProcessKey;
+	/* 0x0070 */ SIZE_T PeakVirtualSize;
+	/* 0x0078 */ SIZE_T VirtualSize;
+	/* 0x0080 */ ULONG PageFaultCount;
+	/* 0x0084 */ ULONG Padding2;
+	/* 0x0088 */ SIZE_T PeakWorkingSetSize;
+	/* 0x0090 */ SIZE_T WorkingSetSize;
+	/* 0x0098 */ SIZE_T QuotaPeakPagedPoolUsage;
+	/* 0x00A0 */ SIZE_T QuotaPagedPoolUsage;
+	/* 0x00A8 */ SIZE_T QuotaPeakNonPagedPoolUsage;
+	/* 0x00B0 */ SIZE_T QuotaNonPagedPoolUsage;
+	/* 0x00B8 */ SIZE_T PagefileUsage;
+	/* 0x00C0 */ SIZE_T PeakPagefileUsage;
+	/* 0x00C8 */ SIZE_T PrivatePageCount;
+	/* 0x00D0 */ LARGE_INTEGER ReadOperationCount;
+	/* 0x00D8 */ LARGE_INTEGER WriteOperationCount;
+	/* 0x00E0 */ LARGE_INTEGER OtherOperationCount;
+	/* 0x00E8 */ LARGE_INTEGER ReadTransferCount;
+	/* 0x00F0 */ LARGE_INTEGER WriteTransferCount;
+	/* 0x00F8 */ LARGE_INTEGER OtherTransferCount;
+} SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION; /* size: 0x0100 */
+
+NTSTATUS StartThread(PVOID start)
+{
+	HANDLE threadHandle = NULL;
+	NTSTATUS status = PsCreateSystemThread(&threadHandle, NULL, NULL, NULL, NULL, (PKSTART_ROUTINE)start, NULL);
+
+	if (!NT_SUCCESS(status))
+	{
+		return status;
+	}
+
+	ZwClose(threadHandle);
+	return STATUS_SUCCESS;
+}
+
+inline ULONG RandomNumber()
+{
+	ULONG64 tickCount;
+	KeQueryTickCount(&tickCount);
+
+	return RtlRandomEx((PULONG)&tickCount);
+}
+
+void WriteRandom(ULONG64 addr, ULONG size)
+{
+	for (size_t i = 0; i < size; i++)
+	{
+		*(char*)(addr + i) = RandomNumber() % 255;
+	}
+}
+
+PVOID AllocatePoolMemory(ULONG size)
+{
+	return ExAllocatePool(NonPagedPool, size);
+}
+
+void FreePoolMemory(PVOID base, ULONG size)
+{
+	for (size_t i = 0; i < size; i++)
+	{
+		*(char*)((UINT64)base + i) = RandomNumber() % 255;
+	}
+	ExFreePoolWithTag(base, 0);
+}
+
+PVOID QuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInfoClass, ULONG* size)
+{
+	int currAttempt = 0;
+	int maxAttempt = 20;
+
+
+QueryTry:
+	if (currAttempt >= maxAttempt)
+		return 0;
+
+	currAttempt++;
+	ULONG neededSize = 0;
+	ZwQuerySystemInformation(SystemInfoClass, NULL, neededSize, &neededSize);
+	if (!neededSize)
+		goto QueryTry;
+
+	ULONG allocationSize = neededSize;
+	PVOID informationBuffer = AllocatePoolMemory(allocationSize);
+	if (!informationBuffer)
+		goto QueryTry;
+
+	NTSTATUS status = ZwQuerySystemInformation(SystemInfoClass, informationBuffer, neededSize, &neededSize);
+	if (!NT_SUCCESS(status))
+	{
+		FreePoolMemory(informationBuffer, allocationSize);
+		goto QueryTry;
+	}
+
+	*size = allocationSize;
+	return informationBuffer;
+}
+
+NTSTATUS GetProcByName(const char* name, PEPROCESS* process, int iteration)
+{
+	ANSI_STRING nameAnsi;
+	RtlInitAnsiString(&nameAnsi, name);
+
+	UNICODE_STRING nameUnicode;
+	NTSTATUS status = RtlAnsiStringToUnicodeString(&nameUnicode, &nameAnsi, true);
+	if (!NT_SUCCESS(status))
+	{
+		return status;
+	}
+
+	ULONG size = 0;
+	PSYSTEM_PROCESS_INFORMATION procInfo = (PSYSTEM_PROCESS_INFORMATION)QuerySystemInformation(SystemProcessInformation, &size);
+	if (!procInfo || !size)
+	{
+		return status;
+	}
+
+	PSYSTEM_PROCESS_INFORMATION currEntry = procInfo;
+
+	int currIteration = 0;
+
+	while (true)
+	{
+		if (!RtlCompareUnicodeString(&nameUnicode, &currEntry->ImageName, true))
+		{
+			if (currIteration != iteration)
+			{
+				currIteration++;
+
+				if (!currEntry->NextEntryOffset)
+					break;
+
+				currEntry = (PSYSTEM_PROCESS_INFORMATION)((char*)currEntry + currEntry->NextEntryOffset);
+				continue;
+			}
+
+			if (0 >= currEntry->NumberOfThreads)
+			{
+				if (!currEntry->NextEntryOffset)
+					break;
+
+				currEntry = (PSYSTEM_PROCESS_INFORMATION)((char*)currEntry + currEntry->NextEntryOffset);
+				continue;
+			}
+
+			ULONGLONG pid = currEntry->UniqueProcessId;
+			PEPROCESS foundProcess = 0;
+			status = PsLookupProcessByProcessId((HANDLE)pid, &foundProcess);
+			if (!NT_SUCCESS(status))
+			{
+				if (!currEntry->NextEntryOffset)
+					break;
+
+				currEntry = (PSYSTEM_PROCESS_INFORMATION)((char*)currEntry + currEntry->NextEntryOffset);
+				continue;
+			}
+
+			FreePoolMemory(procInfo, size);
+			*process = foundProcess;
+			return STATUS_SUCCESS;
+		}
+
+		if (!currEntry->NextEntryOffset)
+			break;
+
+		currEntry = (PSYSTEM_PROCESS_INFORMATION)((char*)currEntry + currEntry->NextEntryOffset);
+	}
+
+	FreePoolMemory(procInfo, size);
+	return STATUS_NOT_FOUND;
+}
+
 //PEB - PROCESS ENVIRONMENT BLOCK
 //MDL - MEMORY DESCRIPTOR LIST
 
@@ -45,6 +235,33 @@ PVOID GetSystemModuleExport(const char* moduleName, LPCTSTR routineName)
 	if (!lpModule) return NULL;
 
 	return RtlFindExportedRoutineByName(lpModule, routineName);
+}
+
+PVOID GetSystemRoutineAddress(PCWSTR routineName)
+{
+	UNICODE_STRING name;
+	RtlInitUnicodeString(&name, routineName);
+	return MmGetSystemRoutineAddress(&name);
+}
+
+PVOID GetSystemModuleExportAlternative(LPCWSTR moduleName, LPCTSTR routineName)
+{
+	PLIST_ENTRY moduleList = reinterpret_cast<PLIST_ENTRY>(GetSystemRoutineAddress(L"PsLoadedModuleList"));
+
+	if (!moduleList) return NULL;
+
+	for (PLIST_ENTRY link = moduleList; link != moduleList->Blink; link = link->Flink)
+	{
+		LDR_DATA_TABLE_ENTRY* entry = CONTAINING_RECORD(link, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+
+		UNICODE_STRING name;
+		RtlInitUnicodeString(&name, moduleName);
+
+		if (RtlEqualUnicodeString(&entry->BaseDllName, &name, TRUE))
+		{
+			return (entry->DllBase) ? RtlFindExportedRoutineByName(entry->DllBase, routineName) : NULL;
+		}
+	}
 }
 
 bool WriteMemory(void* address, void* buffer, size_t size)

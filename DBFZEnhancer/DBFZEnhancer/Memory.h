@@ -4,8 +4,14 @@
 #include "Definitions.h"
 #include <cstdint>
 
+NTSTATUS StartThread(PVOID start);
+NTSTATUS GetProcByName(const char* name, PEPROCESS* process, int iteration);
+PVOID QuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInfoClass, ULONG* size);
 PVOID GetSystemModuleBase(const char* moduleName);
 PVOID GetSystemModuleExport(const char* moduleName, LPCTSTR routineName);
+PVOID GetSystemRoutineAddress(PCWSTR routineName);
+PVOID GetSystemModuleExportAlternative(LPCWSTR moduleName, LPCTSTR routineName);
+
 bool WriteMemory(void* address, void* buffer, size_t size);
 bool WriteToReadOnlyMemory(void* address, void* buffer, size_t size);
 

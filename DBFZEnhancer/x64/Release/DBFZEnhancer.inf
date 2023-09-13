@@ -8,7 +8,7 @@ Class=Multifunction ; TODO: edit Class
 ClassGuid={4d36e971-e325-11ce-bfc1-08002be10318} ; TODO: edit ClassGuid
 Provider=%ManufacturerName%
 CatalogFile=DBFZEnhancer.cat
-DriverVer = 09/03/2022,20.24.38.452
+DriverVer = 09/12/2023,17.19.53.401
 
 [DestinationDirs]
 DefaultDestDir = 12
@@ -84,3 +84,4 @@ ClassName="Samples" ; TODO: edit ClassName
 DiskName = "DBFZEnhancer Installation Disk"
 DBFZEnhancer.DeviceDesc = "DBFZEnhancer Device"
 DBFZEnhancer.SVCDESC = "DBFZEnhancer Service"
+
