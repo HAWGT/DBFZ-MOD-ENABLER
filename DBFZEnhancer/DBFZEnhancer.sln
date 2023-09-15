@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32002.261
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DBFZEnhancer", "DBFZEnhancer\DBFZEnhancer.vcxproj", "{535D378A-7A77-46FA-8F86-6485F40688AD}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DBFZEnhancerUM", "DBFZEnhancerUM\DBFZEnhancerUM.vcxproj", "{F27A13A9-567F-43B4-A0E4-5251074BD978}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,18 +41,6 @@ Global
 		{535D378A-7A77-46FA-8F86-6485F40688AD}.Release|x86.ActiveCfg = Release|Win32
 		{535D378A-7A77-46FA-8F86-6485F40688AD}.Release|x86.Build.0 = Release|Win32
 		{535D378A-7A77-46FA-8F86-6485F40688AD}.Release|x86.Deploy.0 = Release|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|ARM.ActiveCfg = Debug|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|ARM64.ActiveCfg = Debug|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|x64.ActiveCfg = Debug|x64
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|x64.Build.0 = Debug|x64
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|x86.ActiveCfg = Debug|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Debug|x86.Build.0 = Debug|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|ARM.ActiveCfg = Release|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|ARM64.ActiveCfg = Release|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|x64.ActiveCfg = Release|x64
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|x64.Build.0 = Release|x64
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|x86.ActiveCfg = Release|Win32
-		{F27A13A9-567F-43B4-A0E4-5251074BD978}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
