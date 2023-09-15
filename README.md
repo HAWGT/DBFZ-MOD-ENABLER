@@ -1,11 +1,12 @@
 # DBFZ-MOD-ENABLER
 
-**OUTDATED (FOR THE MOMENT)**
-
 To run this, you will need to build KDMAPPER (https://github.com/TheCruZ/kdmapper)
 Then you need to compile and drag the sys file into kdmapper, the user mode exe is what you will be running
 
 Scribbed instructions:
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CI\Config
+VulnerableDriverBlocklistEnable = 0
 
 rename all paks to pxks
 
