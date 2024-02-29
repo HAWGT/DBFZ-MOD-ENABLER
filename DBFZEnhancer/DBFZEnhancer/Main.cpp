@@ -40,7 +40,7 @@ void MainThread()
 
     BYTE patch = 0x78;
 
-    WriteProcessMemory(pid, baseAddress + 0x3416530 + 0x2, (ULONG64) & patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00
+    WriteProcessMemory(pid, baseAddress + 0x349AFF0 + 0x2, (ULONG64) & patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00
 
     PsTerminateSystemThread(STATUS_SUCCESS);
 }
