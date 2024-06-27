@@ -10,6 +10,7 @@ CLIENT_ID currentCid = { 0 };
 
 PEPROCESS targetApplication = nullptr;
 ULONG pid = NULL;
+ULONG writtenpid = NULL;
 
 void MainThread()
 {
@@ -41,9 +42,25 @@ void MainThread()
 
     BYTE patch = 0x78;
 
-    WriteProcessMemory(pid, baseAddress + 0x349AAC8 + 0x2, (ULONG64) & patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00
+    BYTE readByte = 0x0;
 
-    PsTerminateSystemThread(STATUS_SUCCESS);
+    if (writtenpid == pid)
+    {
+        Sleep(1000);
+        goto START;
+    }
+
+    ReadProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&readByte, 1, nullptr);
+
+    if (readByte == 0x61)
+    {
+        WriteProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
+        writtenpid = pid;
+    }
+
+    //PsTerminateSystemThread(STATUS_SUCCESS);
+
+    goto START;
 }
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING regPath)
