@@ -10,72 +10,107 @@ CLIENT_ID currentCid = { 0 };
 
 PEPROCESS targetApplication = nullptr;
 ULONG pid = NULL;
-ULONG writtenpid = NULL;
+ULONG writtenpid1 = NULL;
+ULONG writtenpid2 = NULL;
 
 void MainThread()
 {
-    PEPROCESS currentProcess = IoGetCurrentProcess();
-    PKTHREAD currentThread = KeGetCurrentThread();
-    memcpy(&currentCid, (PVOID)((char*)currentThread + cidOffset), sizeof(CLIENT_ID));
+	PEPROCESS currentProcess = IoGetCurrentProcess();
+	PKTHREAD currentThread = KeGetCurrentThread();
+	memcpy(&currentCid, (PVOID)((char*)currentThread + cidOffset), sizeof(CLIENT_ID));
 
-    NTSTATUS status = STATUS_SUCCESS;
-    START:
+	NTSTATUS status = STATUS_SUCCESS;
+START:
 
-    while (true)
-    {
-        status = GetProcByName("RED-WIN64-SHIPPING.EXE", &targetApplication, 0);
-        if (NT_SUCCESS(status))
-            break;
+	while (true)
+	{
+		status = GetProcByName("RED-WIN64-SHIPPING.EXE", &targetApplication, 0);
+		if (NT_SUCCESS(status))
+			break;
 
-        Sleep(300);
-    }
+		Sleep(300);
+	}
 
-    HANDLE procId = PsGetProcessId(targetApplication);
+	HANDLE procId = PsGetProcessId(targetApplication);
 
-    if (!procId)
-    {
-        goto START;
-    }
-    pid = (ULONG)procId;
+	if (!procId)
+	{
+		goto START;
+	}
+	pid = (ULONG)procId;
 
-    ULONG64 baseAddress = (ULONG64)GetProcessBaseAddress(pid);
+	ULONG64 baseAddress = (ULONG64)GetProcessBaseAddress(pid);
 
-    BYTE patch = 0x78;
+	BYTE patch = 0x78;
 
-    BYTE readByte = 0x0;
+	BYTE readByte = 0x0;
 
-    if (writtenpid == pid)
-    {
-        Sleep(1000);
-        goto START;
-    }
+	BYTE dlc[] = { 0xB0, 0x01, 0xC3 }; //mov al, 1 -> ret
 
-    ReadProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&readByte, 1, nullptr);
+	if (pid == writtenpid1 == writtenpid2)
+	{
+		Sleep(1000);
+		goto START;
+	}
 
-    if (readByte == 0x61)
-    {
-        WriteProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
-        writtenpid = pid;
-    }
+	ReadProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&readByte, 1, nullptr);
 
-    //PsTerminateSystemThread(STATUS_SUCCESS);
+	if (readByte == 0x61)
+	{
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
 
-    goto START;
+		if (NT_SUCCESS(wstatus)) {
+			writtenpid1 = pid;
+		}
+	}
+
+	ReadProcessMemory(pid, baseAddress + 0x6D0D90, (ULONG64)&readByte, 1, nullptr);
+
+	if (readByte == 0x48)
+	{
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x6D0D90, (ULONG64)&dlc, 3, nullptr);
+
+		//DLC
+
+		//48 89 5C 24 08 55 56 57 48 8B EC 48 83 EC ? 48 8B F9
+
+		/*
+
+		sub_1401F7AB0(v17, 12, (unsigned int)"OperatorDLC", 12, 63);
+			  v11 = UREDDLCManager::IsUnlocked(v10, &v17);
+
+		sub_14094F460(v84, L"CharaTOP", 18i64);
+		if ( (_DWORD)v86 )
+			v17 = v84;
+		if ( (unsigned __int8)sub_1406D0D90(v17) ) <--------------------- DLC CHECK
+			v1 = v75 | v77;
+		else
+			v1 = v79;
+		*/
+
+		if (NT_SUCCESS(wstatus)) {
+			writtenpid2 = pid;
+		}
+	}
+
+	//PsTerminateSystemThread(STATUS_SUCCESS);
+
+	goto START;
 }
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING regPath)
 {
-    UNREFERENCED_PARAMETER(driverObject);
-    UNREFERENCED_PARAMETER(regPath);
+	UNREFERENCED_PARAMETER(driverObject);
+	UNREFERENCED_PARAMETER(regPath);
 
-    NTSTATUS status = StartThread(MainThread);
-    if (!NT_SUCCESS(status))
-    {
-        DebugMessage("[SKYHOOK] FAILED \r\n");
-        return STATUS_UNSUCCESSFUL;
-    }
+	NTSTATUS status = StartThread(MainThread);
+	if (!NT_SUCCESS(status))
+	{
+		DebugMessage("[SKYHOOK] FAILED \r\n");
+		return STATUS_UNSUCCESSFUL;
+	}
 
-    DebugMessage("[SKYHOOK] SUCCESS \r\n");
+	DebugMessage("[SKYHOOK] SUCCESS \r\n");
 
-    return STATUS_SUCCESS;
+	return STATUS_SUCCESS;
 }
