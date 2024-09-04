@@ -22,9 +22,13 @@ void MainThread()
 	NTSTATUS status = STATUS_SUCCESS;
 START:
 
+	DebugMessage("[SKYHOOK] THREAD START \r\n");
+
 	while (true)
 	{
-		status = GetProcByName("RED-WIN64-SHIPPING.EXE", &targetApplication, 0);
+		DebugMessage("[SKYHOOK] LOOKING FOR GAME \r\n");
+
+		status = GetProcByName("RED-Win64-Shipping.exe", &targetApplication, 0);
 		if (NT_SUCCESS(status))
 			break;
 
@@ -37,7 +41,10 @@ START:
 	{
 		goto START;
 	}
+
 	pid = (ULONG)procId;
+
+	DebugMessage("[SKYHOOK] FOUND PID %d\r\n", procId);
 
 	ULONG64 baseAddress = (ULONG64)GetProcessBaseAddress(pid);
 
@@ -47,50 +54,65 @@ START:
 
 	BYTE dlc[] = { 0xB0, 0x01, 0xC3 }; //mov al, 1 -> ret
 
-	if (pid == writtenpid1 == writtenpid2)
+	if (pid == writtenpid1 && pid == writtenpid2 && pid > 0 && writtenpid1 > 0 && writtenpid2 > 0)
 	{
+		DebugMessage("[SKYHOOK] ALREADY PATCHED %lld %lld %lld \r\n", pid, writtenpid1, writtenpid2);
 		Sleep(1000);
 		goto START;
 	}
 
-	ReadProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&readByte, 1, nullptr);
+	DebugMessage("[SKYHOOK] PATCHING \r\n");
+
+	ReadProcessMemory(pid, baseAddress + 0x349CDB8 + 0x2, (ULONG64)&readByte, 1, nullptr);
+
+	DebugMessage("[SKYHOOK] READ %hhx\r\n", readByte);
 
 	if (readByte == 0x61)
 	{
-		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x349C380 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x349CDB8 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
 
-		if (NT_SUCCESS(wstatus)) {
+		if (NT_SUCCESS(wstatus))
+		{
 			writtenpid1 = pid;
+
+			DebugMessage("[SKYHOOK] PATCHED PAK LOAD \r\n");
+		}
+		else
+		{
+			DebugMessage("[SKYHOOK] FAILED WRITE \r\n");
 		}
 	}
+	else if (readByte == patch)
+	{
+		writtenpid1 = pid;
+	}
 
-	ReadProcessMemory(pid, baseAddress + 0x6D0D90, (ULONG64)&readByte, 1, nullptr);
+	ReadProcessMemory(pid, baseAddress + 0x6D0A80, (ULONG64)&readByte, 1, nullptr);
+
+	DebugMessage("[SKYHOOK] READ %hhx\r\n", readByte);
 
 	if (readByte == 0x48)
 	{
-		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x6D0D90, (ULONG64)&dlc, 3, nullptr);
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x6D0A80, (ULONG64)&dlc, 3, nullptr);
 
 		//DLC
 
 		//48 89 5C 24 08 55 56 57 48 8B EC 48 83 EC ? 48 8B F9
 
-		/*
-
-		sub_1401F7AB0(v17, 12, (unsigned int)"OperatorDLC", 12, 63);
-			  v11 = UREDDLCManager::IsUnlocked(v10, &v17);
-
-		sub_14094F460(v84, L"CharaTOP", 18i64);
-		if ( (_DWORD)v86 )
-			v17 = v84;
-		if ( (unsigned __int8)sub_1406D0D90(v17) ) <--------------------- DLC CHECK
-			v1 = v75 | v77;
-		else
-			v1 = v79;
-		*/
-
-		if (NT_SUCCESS(wstatus)) {
+		if (NT_SUCCESS(wstatus))
+		{
 			writtenpid2 = pid;
+
+			DebugMessage("[SKYHOOK] PATCHED DLC \r\n");
 		}
+		else
+		{
+			DebugMessage("[SKYHOOK] FAILED WRITE \r\n");
+		}
+	}
+	else if (readByte == dlc[0])
+	{
+		writtenpid2 = pid;
 	}
 
 	//PsTerminateSystemThread(STATUS_SUCCESS);
