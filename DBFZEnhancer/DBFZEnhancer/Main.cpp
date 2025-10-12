@@ -3,6 +3,9 @@
 
 PEPROCESS pProcess;
 
+const ULONG DLC_OFFSET = 0x6D0150;
+const ULONG PAK_OFFSET = 0x3466C10;
+
 ULONG processOffset = 0x220; //_KTHREAD->_KPROCESS* Process;
 ULONG cidOffset = 0x478; //_ETHREAD->_CLIENT_ID Cid;  
 
@@ -63,13 +66,13 @@ START:
 
 	DebugMessage("[SKYHOOK] PATCHING \r\n");
 
-	ReadProcessMemory(pid, baseAddress + 0x349CDB8 + 0x2, (ULONG64)&readByte, 1, nullptr);
+	ReadProcessMemory(pid, baseAddress + PAK_OFFSET + 0x2, (ULONG64)&readByte, 1, nullptr);
 
 	DebugMessage("[SKYHOOK] READ %hhx\r\n", readByte);
 
 	if (readByte == 0x61)
 	{
-		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x349CDB8 + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + PAK_OFFSET + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
 
 		if (NT_SUCCESS(wstatus))
 		{
@@ -87,13 +90,13 @@ START:
 		writtenpid1 = pid;
 	}
 
-	ReadProcessMemory(pid, baseAddress + 0x6D0A80, (ULONG64)&readByte, 1, nullptr);
+	ReadProcessMemory(pid, baseAddress + DLC_OFFSET, (ULONG64)&readByte, 1, nullptr);
 
 	DebugMessage("[SKYHOOK] READ %hhx\r\n", readByte);
 
 	if (readByte == 0x48)
 	{
-		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + 0x6D0A80, (ULONG64)&dlc, 3, nullptr);
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + DLC_OFFSET, (ULONG64)&dlc, 3, nullptr);
 
 		//DLC
 
