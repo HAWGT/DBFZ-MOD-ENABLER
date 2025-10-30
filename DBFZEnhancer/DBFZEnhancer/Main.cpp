@@ -3,8 +3,8 @@
 
 PEPROCESS pProcess;
 
-const ULONG DLC_OFFSET = 0x6D0150;
-const ULONG PAK_OFFSET = 0x3466C10;
+const ULONG DLC_OFFSET = 0x6D0150; 	//48 89 5C 24 08 55 56 57 48 8B EC 48 83 EC ? 48 8B F9
+const ULONG PAK_OFFSET = 0x3466DD0; //70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00
 
 ULONG processOffset = 0x220; //_KTHREAD->_KPROCESS* Process;
 ULONG cidOffset = 0x478; //_ETHREAD->_CLIENT_ID Cid;  
@@ -72,7 +72,7 @@ START:
 
 	if (readByte == 0x61)
 	{
-		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + PAK_OFFSET + 0x2, (ULONG64)&patch, 1, nullptr); //PATTERN: 70 00 61 00 6B 00 00 00 70 00 61 00 6B 00 63 00 68 00 75 00 6E 00 6B 00 (do it from IDA)
+		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + PAK_OFFSET + 0x2, (ULONG64)&patch, 1, nullptr);
 
 		if (NT_SUCCESS(wstatus))
 		{
@@ -97,10 +97,6 @@ START:
 	if (readByte == 0x48)
 	{
 		NTSTATUS wstatus = WriteProcessMemory(pid, baseAddress + DLC_OFFSET, (ULONG64)&dlc, 3, nullptr);
-
-		//DLC
-
-		//48 89 5C 24 08 55 56 57 48 8B EC 48 83 EC ? 48 8B F9
 
 		if (NT_SUCCESS(wstatus))
 		{
